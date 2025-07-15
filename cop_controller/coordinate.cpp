@@ -5,7 +5,7 @@
  * @date   2025-07-10
  */
 
-#include "Coordinate.h"
+#include "coordinate.h"
 
 /**
  * @brief  Construct a Coordinate with given X and Y.

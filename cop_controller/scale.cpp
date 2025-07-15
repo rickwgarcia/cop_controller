@@ -6,7 +6,7 @@
  */
 
 
-#include "Scale.h"
+#include "scale.h"
 
 /**
  * @brief Constructor for the Scale class.

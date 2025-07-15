@@ -9,8 +9,8 @@
  */
 
 #include "HX711.h"
-#include "Scale.h"
-#include "Coordinate.h"
+#include "scale.h"
+#include "coordinate.h"
 #include <EEPROM.h>
 
 /// Available operating modes for the controller.
