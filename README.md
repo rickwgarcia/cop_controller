@@ -1,7 +1,3 @@
-# center_of_pressure_scale
-
-
-Of course. Here is a `README.md` file for your project.
 
 # Arduino 4-Scale Center of Pressure (CoP) Controller
 
@@ -33,6 +29,7 @@ This project implements a versatile four-point weight sensing platform using an 
 ## Wiring Diagram
 
 The hardware should be connected according to the diagram below. All four HX711 amplifier modules share a common clock pin (`SCK`), but each has a dedicated data pin (`DOUT`).
+<img width="5953" height="6371" alt="weight_cop_full_wiring_bb" src="https://github.com/user-attachments/assets/622e4249-d3d8-49ba-a385-cb552dcaabf3" />
 
 ### Pin Connections
 
