@@ -30,7 +30,7 @@ def read_weight(ser):
 
 if __name__ == '__main__':
     # --- Configuration ---
-    serial_port = '/dev/ttyACM0'
+    serial_port = '/dev/ttyUSB0
     baud_rate = 9600
     # NEW: Configure how many historical points to show in the trail
     PLOT_HISTORY_LENGTH = 1000000000000000000000000000000000000000
