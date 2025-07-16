@@ -136,7 +136,7 @@ class App(tk.Tk):
         cal_frame = ttk.LabelFrame(main_frame, text="Quick Calibration", padding="10")
         cal_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N), pady=5)
         
-        ttk.Label(cal_frame, text="Known Weight:").pack(padx=5, pady=2, anchor=tk.W)
+        ttk.Label(cal_frame, text="Place known weight on scale, enter the weight:").pack(padx=5, pady=2, anchor=tk.W)
         self.cal_weight_var = tk.StringVar(value="10.0")
         ttk.Entry(cal_frame, textvariable=self.cal_weight_var).pack(fill=tk.X, padx=5, pady=2)
         ttk.Button(cal_frame, text="Calibrate", command=self.start_calibration).pack(fill=tk.X, pady=5)
