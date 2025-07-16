@@ -122,7 +122,8 @@ Where $W\_A, W\_B, W\_C, W\_D$ are the weights measured at each respective corne
 
 For a more user-friendly experience, a Python-based graphical user interface (GUI) is available. This application provides a visual way to interact with the Arduino, display data, and run commands without needing to use the Serial Monitor directly. It features a real-time plot for the Center of Pressure, making it easy to visualize the data.
 
-<img width="1358" height="1136" alt="image" src="https://github.com/user-attachments/assets/3d9db627-884c-4fa4-8bcb-6253ab7db894" />
+<img width="1336" height="1271" alt="image" src="https://github.com/user-attachments/assets/e3334123-0445-4e0d-b995-a751a1ca421b" />
+
 
 ### GUI Features
 
