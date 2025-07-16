@@ -149,7 +149,7 @@ pip install pyserial matplotlib
 
 ### How to Use the GUI
 
-1.  Save the provided Python script to a file (e.g., `gui_controller.py`).
+1.  Save the provided Python script to a file `gui_controller.py`.
 2.  Make sure your Arduino is programmed with the `cop_controller.ino` sketch and connected to your computer via USB.
 3.  Open a terminal or command prompt and run the script:
     ```bash
