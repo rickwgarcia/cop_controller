@@ -115,14 +115,6 @@ void print_readings() {
 }
 
 /**
- * @brief  Block until the user sends new serial input.
- */
-void wait_for_serial() {
-    while (Serial.available()) Serial.read();
-    while (!Serial.available()) delay(100);
-}
-
-/**
  * @brief  Tare (zero) all four scales.
  */
 void tare_all() {
@@ -135,44 +127,93 @@ void tare_all() {
 }
 
 /**
- * @brief  Perform a quick calibration using one known weight placed centrally.
- *
- * This routine tares the scales, prompts the user for a known weight,
- * computes individual calibration factors for each sensor, averages them,
- * applies the average, and then saves settings to EEPROM.
+ * @brief  Handles the user interface for the quick calibration routine.
+ * @details Prompts the user to enter a known weight via the Serial Monitor,
+ * parses the input, and then calls the core calibration logic.
  */
 void quick_calibrate() {
-    Serial.println(F("Calibrating all... Taring in 3 seconds."));
-    delay(3000);
+    // Clear buffer
+    while (Serial.available() > 0) {
+        Serial.read();
+    }
+  
+    Serial.println();
+    Serial.println(F("Quick Calibration..."));
+    Serial.println(F("Ensure scale has already been tared."));
+    Serial.println(F("Place known weight in the center of the platform."));
+    Serial.println(F("Enter the weight in lbs: "));
+  
+    // Block until user sends data
+    while (Serial.available() == 0) {
+        delay(50); 
+    }
+  
+    // Read the floating-point number from the serial buffer
+    float weight = Serial.parseFloat();
+  
+    // Clear any remaining characters from the buffer (like the newline)
+    while(Serial.available() > 0) {
+        Serial.read();
+    }
+  
+    if (weight > 0.0) {
+        calibrate_all(weight);
+    } else {
+        Serial.println(F("\nInvalid weight entered. Calibration cancelled."));
+    }
+}
 
+
+/**
+ * @brief  Calculates and applies a single, averaged calibration factor for all load cells.
+ * @details This is the core calibration routine. It computes an individual calibration factor
+ * for each of the four sensors based on an assumed equal weight distribution. It then
+ * averages these four values to get a single factor, which is applied to all sensors
+ * and saved to persistent memory (EEPROM). This method helps normalize the response
+ * across all sensors.
+ *
+ * @param  weight The total known weight placed on the scale platform for calibration.
+ *
+ * @note   This function operates on two key assumptions:
+ * 1. The scale has already been tared (zeroed). This function does not perform a tare.
+ * 2. The `weight` is distributed perfectly evenly across all four sensors. For best
+ * results, the calibration weight should be placed in the exact center of the scale.
+ */
+void calibrate_all(float weight) {
+    Serial.println(F("Calibrating all..."));
+
+    // Reset scale factor to 1.0 on all sensors to get raw readings for calibration.
     SCALE_A.set_scale(); 
     SCALE_B.set_scale(); 
     SCALE_C.set_scale(); 
     SCALE_D.set_scale(); 
+     
+    // Assume the total weight is distributed equally among the four scales.
+    float perScale = weight / 4.0f;
 
-    tare_all();
-    Serial.println(F("Place known weight and enter its value:"));
-    wait_for_serial();
-    float known = Serial.parseFloat();
-    float perScale = known / 4.0f;
-
+    // Calculate the individual calibration factor for each scale.
     float ca = calc_calibration_val(&SCALE_A, perScale);
     float cb = calc_calibration_val(&SCALE_B, perScale);
     float cc = calc_calibration_val(&SCALE_C, perScale);
     float cd = calc_calibration_val(&SCALE_D, perScale);
 
+    // Average the four factors to get a single, unified value.
     float avg = (ca + cb + cc + cd) / 4.0f;
+
+    // Apply the averaged calibration factor to all scales.
     SCALE_A.set_scale(avg);
     SCALE_B.set_scale(avg);
     SCALE_C.set_scale(avg);
     SCALE_D.set_scale(avg);
 
+    // Save the new calibration factor to EEPROM for each scale.
     SCALE_A.save();
     SCALE_B.save();
     SCALE_C.save();
     SCALE_D.save();
 
-    Serial.print(F("Calibration factor is ")); Serial.println(avg, 4);
+    Serial.print(F("New average calibration factor is: ")); 
+    Serial.println(avg, 4); // Print with 4 decimal places for precision.
 }
 
 

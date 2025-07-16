@@ -5,6 +5,9 @@ import serial.tools.list_ports
 import threading
 import queue
 import re
+# --- New Imports for Matplotlib Integration ---
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class SerialThread(threading.Thread):
     """
@@ -36,7 +39,7 @@ class SerialThread(threading.Thread):
                 line = self.serial_connection.readline().decode('utf-8').strip()
                 if line:
                     # Check if the line contains calibration prompt
-                    if "Place known weight and enter its value:" in line and self._is_calibrating:
+                    if "Enter the weight in lbs:" in line and self._is_calibrating:
                         self.send(f"{self._calibration_weight}\n")
                         self.log_queue.put(f"Sent calibration weight: {self._calibration_weight}")
                         self._is_calibrating = False # Reset calibration state
@@ -86,6 +89,11 @@ class App(tk.Tk):
         # Regex patterns for parsing data
         self.cop_pattern = re.compile(r"\(([-]?\d+\.\d+), ([-]?\d+\.\d+)\)")
         self.weight_pattern = re.compile(r"([-]?\d+\.\d+),([-]?\d+\.\d+),([-]?\d+\.\d+),([-]?\d+\.\d+)")
+        
+        # --- New: Data storage for the plot ---
+        self.x_com_history = []
+        self.y_com_history = []
+        self.PLOT_HISTORY_LENGTH = 100 # How many historical points to show
 
         # UI Setup
         self.setup_ui()
@@ -149,12 +157,25 @@ class App(tk.Tk):
             label.grid(row=i, column=1, sticky=tk.W, padx=5)
             self.weight_labels.append(label)
         
-        # CoP Canvas
-        self.cop_canvas = tk.Canvas(data_frame, bg="white", width=250, height=250)
-        self.cop_canvas.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        self.cop_canvas.create_line(125, 0, 125, 250, fill="lightgrey")
-        self.cop_canvas.create_line(0, 125, 250, 125, fill="lightgrey")
-        self.cop_dot = self.cop_canvas.create_oval(120, 120, 130, 130, fill="red", outline="red")
+        # --- UPDATED: Matplotlib CoP Plot ---
+        self.fig = Figure(figsize=(3, 3), dpi=100)
+        self.ax = self.fig.add_subplot(111)
+        
+        self.trail_line, = self.ax.plot([], [], 'b-', alpha=0.5, label='History Trail')
+        self.current_point_marker, = self.ax.plot([], [], 'ro', markersize=8, label='Current Position')
+
+        self.ax.set_xlim(-1.5, 1.5)
+        self.ax.set_ylim(-1.5, 1.5)
+        self.ax.set_xlabel("X")
+        self.ax.set_ylabel("Y")
+        self.ax.set_title("Center of Pressure")
+        self.ax.grid(True)
+        self.ax.set_aspect('equal', adjustable='box')
+        self.fig.tight_layout()
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=data_frame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
         # --- Log Console ---
         log_frame = ttk.LabelFrame(main_frame, text="Serial Log", padding="10")
@@ -250,20 +271,24 @@ class App(tk.Tk):
             return
 
     def update_cop_display(self, x, y):
-        """Updates the position of the dot on the CoP canvas."""
-        canvas_width = self.cop_canvas.winfo_width()
-        canvas_height = self.cop_canvas.winfo_height()
+        """UPDATED: Updates the matplotlib plot with new CoP data."""
+        # Append new data to the history
+        self.x_com_history.append(x)
+        self.y_com_history.append(y)
 
-        # Map normalized CoP coordinates [-1, 1] to canvas coordinates
-        # Y is inverted because canvas (0,0) is top-left
-        canvas_x = (x + 1) / 2 * canvas_width
-        canvas_y = (1 - y) / 2 * canvas_height
+        # Trim the history to the desired length
+        if len(self.x_com_history) > self.PLOT_HISTORY_LENGTH:
+            self.x_com_history.pop(0)
+            self.y_com_history.pop(0)
 
-        # Move the dot
-        x0, y0, x1, y1 = self.cop_canvas.coords(self.cop_dot)
-        dx = canvas_x - (x0 + x1) / 2
-        dy = canvas_y - (y0 + y1) / 2
-        self.cop_canvas.move(self.cop_dot, dx, dy)
+        # Update the trail line with the trimmed history
+        self.trail_line.set_data(self.x_com_history, self.y_com_history)
+        
+        # Update the current point marker with only the latest data
+        self.current_point_marker.set_data([x], [y])
+        
+        # Redraw the canvas efficiently
+        self.canvas.draw_idle()
 
     def log_message(self, msg):
         """Appends a message to the log text area."""
