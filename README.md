@@ -114,6 +114,49 @@ $$X_{CoP} = \frac{(W_B + W_C) - (W_A + W_D)}{W_A + W_B + W_C + W_D}$$
 
 $$Y_{CoP} = \frac{(W_C + W_D) - (W_A + W_B)}{W_A + W_B + W_C + W_D}$$
 
-Where $W\_A, W\_B, W\_C, W\_D$ are the weights measured at each respective corner.
+Where $W\_A, W\_B, W\_C, W\_D$ are the weights measured at each respective corner.\
 
 -----
+
+## Python GUI Controller
+
+For a more user-friendly experience, a Python-based graphical user interface (GUI) is available. This application provides a visual way to interact with the Arduino, display data, and run commands without needing to use the Serial Monitor directly. It features a real-time plot for the Center of Pressure, making it easy to visualize the data.
+
+### GUI Features
+
+  * **Easy Connection**: Automatically detects and lists available serial ports for a quick connection.
+  * **Command Buttons**: Simple one-click buttons for all major functions: `Stream Weights`, `Stream CoP`, `Stop Stream`, and `Tare`.
+  * **Visual CoP Plot**: Displays the Center of Pressure on a 2D graph in real-time. It shows the current CoP point and a historical "trail" of recent movements.
+  * **Live Data Display**: Shows the current weight reading from each of the four individual scales.
+  * **Simplified Calibration**: A dedicated section to input the known weight and initiate the quick calibration routine with a single button press.
+  * **Serial Log**: A console window shows all data sent to and received from the Arduino, which is useful for debugging.
+
+### Software Requirements
+
+To run the GUI, you need Python 3 and a few additional libraries.
+
+  * **Python 3.x**
+  * **pyserial**: For handling the serial communication with the Arduino.
+  * **matplotlib**: For creating the real-time 2D plot.
+
+You can install the necessary libraries using pip:
+
+```bash
+pip install pyserial matplotlib
+```
+
+> **Note**: `Tkinter` is also required, but it is included with most standard Python installations on Windows, macOS, and Linux.
+
+### How to Use the GUI
+
+1.  Save the provided Python script to a file (e.g., `gui_controller.py`).
+2.  Make sure your Arduino is programmed with the `cop_controller.ino` sketch and connected to your computer via USB.
+3.  Open a terminal or command prompt and run the script:
+    ```bash
+    python gui_controller.py
+    ```
+4.  The GUI window will appear.
+      * **Connect**: Select the correct serial port for your Arduino from the dropdown menu and click the **Connect** button. The log should confirm a successful connection.
+      * **Control**: Use the buttons in the "Controls" frame to start/stop data streams or tare the scales.
+      * **View Data**: Watch the numerical weight values update in the "Live Data" section and observe the CoP movement on the graph.
+      * **Calibrate**: To calibrate, enter your known weight value in the "Quick Calibration" box, place the weight on the platform, and click the **Calibrate** button. The GUI will handle sending the command and the weight value to the Arduino automatically.
