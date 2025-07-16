@@ -70,11 +70,11 @@ All interaction with the controller is done via the **Arduino Serial Monitor** s
 
 On first use, or if you change the physical setup, you must calibrate the scales. The `quick_calibrate` function simplifies this process.
 
-1.  With nothing on the scales, send the `k` command to start the calibration.
-2.  The system will automatically tare itself.
-3.  Place a **single weight of a known value** as close to the center of the platform as possible.
-4.  Type the known weight's value into the Serial Monitor's input bar and press Enter.
-5.  The controller will calculate an average calibration factor, apply it to all four scales, and save the settings to EEPROM. The system is now ready for use.
+1.  With nothing on the scales, send the `z` command to tare the scale.
+4.  Place a **single weight of a known value** as close to the center of the platform as possible.
+5.  With the known weight on the scale, send the `k` command to start the calibration.
+6.  Type the known weight's value into the Serial Monitor's input bar and press Enter.
+7.  The controller will calculate an average calibration factor, apply it to all four scales, and save the settings to EEPROM. The system is now ready for use.
 
 ### Serial Commands
 
