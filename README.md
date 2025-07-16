@@ -117,20 +117,3 @@ $$Y_{CoP} = \frac{(W_C + W_D) - (W_A + W_B)}{W_A + W_B + W_C + W_D}$$
 Where $W\_A, W\_B, W\_C, W\_D$ are the weights measured at each respective corner.
 
 -----
-
-## Usage Example: Python GUI
-
-To demonstrate how to control the firmware from an external application, a sample Python GUI is provided in the `/gui` folder. This application can connect to the Arduino, send commands, and visualize the incoming data in real-time, serving as a template for developing your own software interface.
-
-![GUI Screenshot](gui/gui_screenshot.png)
-
-### Running the Example GUI
-
-**1. Prerequisites**
-   * Python 3.6+ must be installed.
-   * Your Arduino must be flashed with the firmware and connected.
-
-**2. Install Dependencies**
-   Navigate to the `/gui` folder in your terminal and install the required library:
-   ```bash
-   pip install -r requirements.txt
