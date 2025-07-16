@@ -115,3 +115,5 @@ $$X_{CoP} = \frac{(W_B + W_C) - (W_A + W_D)}{W_A + W_B + W_C + W_D}$$
 $$Y_{CoP} = \frac{(W_C + W_D) - (W_A + W_B)}{W_A + W_B + W_C + W_D}$$
 
 Where $W\_A, W\_B, W\_C, W\_D$ are the weights measured at each respective corner.
+
+-----
