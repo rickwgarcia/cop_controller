@@ -1,0 +1,72 @@
+# Generic
+# =================================
+# Compiled source files, logs, and temporary files
+*.o
+*.a
+*.so
+*.lib
+*.dll
+*.exe
+*.out
+*.log
+*.tmp
+
+# Build output directories
+/build/
+/bin/
+/dist/
+
+
+# C/C++ & Arduino Specific
+# =================================
+# Arduino build artifacts
+*.cpp.d
+*.eep
+*.elf
+*.hex
+*.lss
+*.map
+
+
+# Python Specific
+# =================================
+# Byte-compiled / optimized files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment folders
+venv/
+.venv/
+env/
+.env
+
+# Distribution / packaging
+*.egg-info/
+.eggs/
+
+
+# IDE & Editor Specific
+# =================================
+# Visual Studio Code
+.vscode/
+
+# JetBrains (PyCharm, CLion, etc.)
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+
+# OS Specific
+# =================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
