@@ -91,6 +91,10 @@ The following commands are available:
 
 -----
 
+Of course. Here is the updated "Center of Pressure (CoP) Calculation" section for your README file, reflecting the change in the Y-axis calculation.
+
+-----
+
 ## Center of Pressure (CoP) Calculation
 
 The CoP is calculated based on the weight readings from the four corners, which are designated as follows:
@@ -106,15 +110,15 @@ The CoP is calculated based on the weight readings from the four corners, which 
 The resulting CoP is given as a normalized coordinate pair $(X, Y)$, where both values range from -1.0 to 1.0.
 
   * **X-axis**: A value of -1.0 corresponds to the left edge (A-D), and +1.0 corresponds to the right edge (B-C).
-  * **Y-axis**: A value of -1.0 corresponds to the top edge (A-B), and +1.0 corresponds to the bottom edge (D-C).
+  * **Y-axis**: A value of +1.0 corresponds to the top edge (A-B), and -1.0 corresponds to the bottom edge (D-C).
 
 The formulas used are:
 
 $$X_{CoP} = \frac{(W_B + W_C) - (W_A + W_D)}{W_A + W_B + W_C + W_D}$$
 
-$$Y_{CoP} = \frac{(W_C + W_D) - (W_A + W_B)}{W_A + W_B + W_C + W_D}$$
+$$Y_{CoP} = \frac{(W_A + W_B) - (W_C + W_D)}{W_A + W_B + W_C + W_D}$$
 
-Where $W\_A, W\_B, W\_C, W\_D$ are the weights measured at each respective corner.\
+Where $W\_A, W\_B, W\_C, \\text{ and } W\_D$ are the weights measured at each respective corner.
 
 -----
 
