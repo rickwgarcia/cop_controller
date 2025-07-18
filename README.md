@@ -27,7 +27,8 @@ This project implements a versatile four-point weight sensing platform using an 
 ## Wiring Diagram
 
 The hardware should be connected according to the diagram below. All four HX711 amplifier modules share a common clock pin (`SCK`), but each has a dedicated data pin (`DOUT`).
-<img width="5556" height="5946" alt="weight_cop_full_wiring_bb" src="https://github.com/user-attachments/assets/5ba58f82-df31-49cd-aaae-2e01ae0fc0e9" />
+
+<img width="7045" height="7539" alt="weight_cop_full_wiring_bb" src="https://github.com/user-attachments/assets/d9720149-c30e-4a04-ac23-b23a5b0c4068" />
 
 
 
