@@ -68,7 +68,7 @@ Coordinate calc_cop(float wa, float wb, float wc, float wd) {
         return Coordinate(0.0f, 0.0f);
     }
     float x = ((wb + wc) - (wa + wd)) / total;
-    float y = ((wc + wd) - (wa + wb)) / total;
+    float y = ((wa + wb) - (wc + wd)) / total;
     return Coordinate(x, y);
 }
 
@@ -196,6 +196,11 @@ void calibrate_all(float weight) {
     float cb = calc_calibration_val(&SCALE_B, perScale);
     float cc = calc_calibration_val(&SCALE_C, perScale);
     float cd = calc_calibration_val(&SCALE_D, perScale);
+    Serial.print("Scale A calibration factor: "); Serial.println(ca); 
+    Serial.print("Scale B calibration factor: "); Serial.println(cb); 
+    Serial.print("Scale C calibration factor: "); Serial.println(cc); 
+    Serial.print("Scale D calibration factor: "); Serial.println(cd); 
+
 
     // Average the four factors to get a single, unified value.
     float avg = (ca + cb + cc + cd) / 4.0f;
