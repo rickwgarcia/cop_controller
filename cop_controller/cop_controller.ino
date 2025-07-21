@@ -123,6 +123,25 @@ void tare_all() {
     SCALE_B.tare();
     SCALE_C.tare();
     SCALE_D.tare();
+
+    long za = SCALE_A.get_offset(); 
+    long zb = SCALE_B.get_offset(); 
+    long zc = SCALE_C.get_offset(); 
+    long zd = SCALE_D.get_offset();
+
+    Serial.print("Scale A zero factor: "); Serial.println(za); 
+    Serial.print("Scale B zero factor: "); Serial.println(zb); 
+    Serial.print("Scale C zero factor: "); Serial.println(zc); 
+    Serial.print("Scale D zero factor: "); Serial.println(zd); 
+
+
+    long z_avg = (za + zb + zc + zd)/4.0f;
+
+    SCALE_A.set_offset(z_avg);
+    SCALE_B.set_offset(z_avg); 
+    SCALE_C.set_offset(z_avg); 
+    SCALE_D.set_offset(z_avg);  
+    
     Serial.println(F("Scaled tared."));
 }
 
