@@ -227,7 +227,7 @@ void calibrate_all(float weight) {
  * @brief  Arduino setup: initialize serial, scales, load settings, then tare.
  */
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.println(F("HX711 Four Scale Controller"));
 
     SCALE_A.begin(DOUT_PIN_A, CLK_PIN);
@@ -269,6 +269,4 @@ void loop() {
     } else if (mode == STREAM_COP) {
         print_cop();
     }
-
-    delay(50);
 }
