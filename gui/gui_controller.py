@@ -8,6 +8,7 @@ import re
 # --- New Imports for Matplotlib Integration ---
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.animation import FuncAnimation
 
 class SerialThread(threading.Thread):
     """
@@ -90,15 +91,17 @@ class App(tk.Tk):
         self.cop_pattern = re.compile(r"\(([-]?\d+\.\d+), ([-]?\d+\.\d+)\)")
         self.weight_pattern = re.compile(r"([-]?\d+\.\d+),([-]?\d+\.\d+),([-]?\d+\.\d+),([-]?\d+\.\d+)")
         
-        # --- New: Data storage for the plot ---
-        self.x_com_history = []
-        self.y_com_history = []
+        # --- Data storage for the plot ---
+        self.x_cop_history = []
+        self.y_cop_history = []
         self.PLOT_HISTORY_LENGTH = 100 # How many historical points to show
 
         # UI Setup
         self.setup_ui()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.process_queues()
+        
+        # Start processing the log queue
+        self.process_log_queue()
 
     def setup_ui(self):
         """Creates and arranges all the widgets in the window."""
@@ -143,6 +146,7 @@ class App(tk.Tk):
 
         # --- Data Display Frame ---
         data_frame = ttk.LabelFrame(main_frame, text="Live Data", padding="10")
+        ### THIS IS THE CORRECTED LINE ###
         data_frame.grid(row=1, column=1, rowspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10)
         data_frame.columnconfigure(0, weight=1)
         data_frame.rowconfigure(1, weight=1)
@@ -157,10 +161,11 @@ class App(tk.Tk):
             label.grid(row=i, column=1, sticky=tk.W, padx=5)
             self.weight_labels.append(label)
         
-        # --- UPDATED: Matplotlib CoP Plot ---
+        # --- Matplotlib CoP Plot ---
         self.fig = Figure(figsize=(3, 3), dpi=100)
         self.ax = self.fig.add_subplot(111)
         
+        # Initialize plot elements. Note we get handles to them to update later.
         self.trail_line, = self.ax.plot([], [], 'b-', alpha=0.5, label='History Trail')
         self.current_point_marker, = self.ax.plot([], [], 'ro', markersize=8, label='Current Position')
 
@@ -176,6 +181,11 @@ class App(tk.Tk):
         self.canvas = FigureCanvasTkAgg(self.fig, master=data_frame)
         self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        
+        # Setup the animation loop
+        # The 'interval' is in milliseconds. 30ms is ~33 FPS.
+        # 'blit=True' is key for performance. It only redraws the parts that have changed.
+        self.ani = FuncAnimation(self.fig, self.animate_plot, interval=30, blit=True, save_count=10)
 
         # --- Log Console ---
         log_frame = ttk.LabelFrame(main_frame, text="Serial Log", padding="10")
@@ -201,7 +211,8 @@ class App(tk.Tk):
             self.log_message("Please select a port first.")
             return
 
-        self.serial_thread = SerialThread(port, 9600, self.data_queue, self.log_queue)
+        # Baud rate is 115200 to match the Arduino code
+        self.serial_thread = SerialThread(port, 115200, self.data_queue, self.log_queue)
         self.serial_thread.start()
         
         self.connect_button.config(state="disabled")
@@ -235,21 +246,37 @@ class App(tk.Tk):
             self.serial_thread.start_calibration(weight)
         except ValueError:
             self.log_message("Error: Invalid calibration weight. Please enter a number.")
-            
-    def process_queues(self):
-        """Periodically checks queues for new data and updates the GUI."""
+
+    def animate_plot(self, frame):
+        """This function is called periodically to update the plot."""
         try:
-            while not self.log_queue.empty():
-                self.log_message(self.log_queue.get_nowait())
-            
+            # Process all pending items in the queue
             while not self.data_queue.empty():
                 line = self.data_queue.get_nowait()
                 self.parse_and_update(line)
+        except queue.Empty:
+            pass # No new data, just redraw
+        
+        # Update plot data. This is faster than clearing and replotting.
+        self.trail_line.set_data(self.x_cop_history, self.y_cop_history)
+        if self.x_cop_history:
+             self.current_point_marker.set_data([self.x_cop_history[-1]], [self.y_cop_history[-1]])
+        else:
+             self.current_point_marker.set_data([], [])
 
+        # Return the artists that were changed. This is required for blit=True.
+        return self.trail_line, self.current_point_marker
+            
+    def process_log_queue(self):
+        """Periodically checks the log queue and updates the GUI."""
+        try:
+            while not self.log_queue.empty():
+                self.log_message(self.log_queue.get_nowait())
         except queue.Empty:
             pass
         finally:
-            self.after(100, self.process_queues)
+            # Check again in 100ms
+            self.after(100, self.process_log_queue)
 
     def parse_and_update(self, line):
         """Parses a line of data and updates the appropriate UI element."""
@@ -267,28 +294,16 @@ class App(tk.Tk):
         cop_match = self.cop_pattern.match(line)
         if cop_match:
             x, y = map(float, cop_match.groups())
-            self.update_cop_display(x, y)
+            
+            # Append new data to the history
+            self.x_cop_history.append(x)
+            self.y_cop_history.append(y)
+
+            # Trim the history to the desired length
+            if len(self.x_cop_history) > self.PLOT_HISTORY_LENGTH:
+                self.x_cop_history.pop(0)
+                self.y_cop_history.pop(0)
             return
-
-    def update_cop_display(self, x, y):
-        """UPDATED: Updates the matplotlib plot with new CoP data."""
-        # Append new data to the history
-        self.x_com_history.append(x)
-        self.y_com_history.append(y)
-
-        # Trim the history to the desired length
-        if len(self.x_com_history) > self.PLOT_HISTORY_LENGTH:
-            self.x_com_history.pop(0)
-            self.y_com_history.pop(0)
-
-        # Update the trail line with the trimmed history
-        self.trail_line.set_data(self.x_com_history, self.y_com_history)
-        
-        # Update the current point marker with only the latest data
-        self.current_point_marker.set_data([x], [y])
-        
-        # Redraw the canvas efficiently
-        self.canvas.draw_idle()
 
     def log_message(self, msg):
         """Appends a message to the log text area."""
