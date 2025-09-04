@@ -1,11 +1,12 @@
 /**
- * @file   cop_controller.ino
- * @brief  Four‑scale controller for HX711-based weight sensors.
- * @author rickwgarcia@unm.edu
- * @date   2025-07-10
+ * @file    cop_controller.ino
+ * @brief   Four-scale controller for HX711-based weight sensors with spike rejection.
+ * @author  rickwgarcia@unm.edu
+ * @date    2025-09-04
  *
  * This sketch manages four HX711 scales, supports streaming readings,
  * calculating center of pressure (CoP), taring, and quick calibration.
+ * It includes a simple spike rejection filter to remove outlier readings.
  */
 
 #include "HX711.h"
@@ -15,9 +16,9 @@
 
 /// Available operating modes for the controller.
 enum Mode {
-  IDLE,            ///< No streaming; awaiting user input
-  STREAM_READINGS, ///< Continuously output raw weights
-  STREAM_COP       ///< Continuously output center of pressure
+  IDLE,             ///< No streaming; awaiting user input
+  STREAM_READINGS,  ///< Continuously output raw weights
+  STREAM_COP        ///< Continuously output center of pressure
 };
 
 /// Current mode; defaults to IDLE.
@@ -43,10 +44,20 @@ Scale SCALE_B(EEPROM_ADDR_B);
 Scale SCALE_C(EEPROM_ADDR_C);
 Scale SCALE_D(EEPROM_ADDR_D);
 
+// Threshold for spike rejection. If a new reading changes by more than this amount
+// from the last one, it's considered an outlier. Tune this value for your setup.
+const float SPIKE_THRESHOLD = 2.0f; // In lbs
+
+// Variables to store the last known good reading for each scale
+static float last_reading_A = 0.0f;
+static float last_reading_B = 0.0f;
+static float last_reading_C = 0.0f;
+static float last_reading_D = 0.0f;
+
 /**
- * @brief  Compute calibration factor for one scale.
- * @param  scale   Pointer to the Scale object to calibrate.
- * @param  weight  Known weight placed on the scale (in the same units used by get_units()).
+ * @brief   Compute calibration factor for one scale.
+ * @param   scale   Pointer to the Scale object to calibrate.
+ * @param   weight  Known weight placed on the scale (in the same units used by get_units()).
  * @return The computed calibration factor.
  */
 float calc_calibration_val(Scale* scale, float weight) {
@@ -55,11 +66,11 @@ float calc_calibration_val(Scale* scale, float weight) {
 }
 
 /**
- * @brief  Compute center of pressure (CoP) from four corner weights.
- * @param  wa  Weight from sensor A.
- * @param  wb  Weight from sensor B.
- * @param  wc  Weight from sensor C.
- * @param  wd  Weight from sensor D.
+ * @brief   Compute center of pressure (CoP) from four corner weights.
+ * @param   wa  Weight from sensor A.
+ * @param   wb  Weight from sensor B.
+ * @param   wc  Weight from sensor C.
+ * @param   wd  Weight from sensor D.
  * @return A Coordinate object with normalized X and Y CoP values in [-1,1].
  */
 Coordinate calc_cop(float wa, float wb, float wc, float wd) {
@@ -73,14 +84,29 @@ Coordinate calc_cop(float wa, float wb, float wc, float wd) {
 }
 
 /**
- * @brief  Print the current CoP to Serial as “(X, Y)”.
+ * @brief  Gets a reading from a scale, rejecting outliers (spikes).
+ * @param  scale         Pointer to the Scale object to read from.
+ * @param  last_reading  Reference to the last known good reading for this scale.
+ * @return The filtered weight reading.
  */
-void print_cop() {
-    float wa = SCALE_A.get_units();
-    float wb = SCALE_B.get_units();
-    float wc = SCALE_C.get_units();
-    float wd = SCALE_D.get_units();
+float get_filtered_reading(Scale* scale, float &last_reading) {
+    float new_reading = scale->get_units();
 
+    // Check if the change from the last reading is greater than our threshold
+    if (abs(new_reading - last_reading) > SPIKE_THRESHOLD) {
+        // It's a spike! Discard the new reading and return the last good one.
+        return last_reading;
+    } else {
+        // The reading is valid. Update the last reading and return the new one.
+        last_reading = new_reading;
+        return new_reading;
+    }
+}
+
+/**
+ * @brief   Print the current CoP to Serial as “(X, Y)”.
+ */
+void print_cop(float wa, float wb, float wc, float wd) {
     Coordinate cop = calc_cop(wa, wb, wc, wd);
     Serial.print('(');
     Serial.print(cop.get_x(), 3);
@@ -90,7 +116,7 @@ void print_cop() {
 }
 
 /**
- * @brief  Display the available serial commands.
+ * @brief   Display the available serial commands.
  */
 void print_menu() {
     Serial.println(); 
@@ -105,17 +131,17 @@ void print_menu() {
 }
 
 /**
- * @brief  Print raw weight readings from all four scales, comma‑separated.
+ * @brief   Print raw weight readings from all four scales, comma-separated.
  */
-void print_readings() {
-    Serial.print(SCALE_A.get_units(), 1); Serial.print(',');
-    Serial.print(SCALE_B.get_units(), 1); Serial.print(',');
-    Serial.print(SCALE_C.get_units(), 1); Serial.print(',');
-    Serial.println(SCALE_D.get_units(), 1);
+void print_readings(float wa, float wb, float wc, float wd) {
+    Serial.print(wa, 1); Serial.print(',');
+    Serial.print(wb, 1); Serial.print(',');
+    Serial.print(wc, 1); Serial.print(',');
+    Serial.println(wd, 1);
 }
 
 /**
- * @brief  Tare (zero) all four scales.
+ * @brief   Tare (zero) all four scales.
  */
 void tare_all() {
     Serial.println(F("Taring scales..."));
@@ -124,11 +150,11 @@ void tare_all() {
     SCALE_C.tare();
     SCALE_D.tare(); 
     
-    Serial.println(F("Scaled tared."));
+    Serial.println(F("Scales tared."));
 }
 
 /**
- * @brief  Handles the user interface for the quick calibration routine.
+ * @brief   Handles the user interface for the quick calibration routine.
  * @details Prompts the user to enter a known weight via the Serial Monitor,
  * parses the input, and then calls the core calibration logic.
  */
@@ -137,26 +163,26 @@ void quick_calibrate() {
     while (Serial.available() > 0) {
         Serial.read();
     }
-  
+    
     Serial.println();
     Serial.println(F("Quick Calibration..."));
     Serial.println(F("Ensure scale has already been tared."));
     Serial.println(F("Place known weight in the center of the platform."));
     Serial.println(F("Enter the weight in lbs: "));
-  
+    
     // Block until user sends data
     while (Serial.available() == 0) {
         delay(50); 
     }
-  
+    
     // Read the floating-point number from the serial buffer
     float weight = Serial.parseFloat();
-  
+    
     // Clear any remaining characters from the buffer (like the newline)
     while(Serial.available() > 0) {
         Serial.read();
     }
-  
+    
     if (weight > 0.0) {
         calibrate_all(weight);
     } else {
@@ -166,16 +192,16 @@ void quick_calibrate() {
 
 
 /**
- * @brief  Calculates and applies a single, averaged calibration factor for all load cells.
+ * @brief   Calculates and applies a single, averaged calibration factor for all load cells.
  * @details This is the core calibration routine. It computes an individual calibration factor
  * for each of the four sensors based on an assumed equal weight distribution. It then
  * averages these four values to get a single factor, which is applied to all sensors
  * and saved to persistent memory (EEPROM). This method helps normalize the response
  * across all sensors.
  *
- * @param  weight The total known weight placed on the scale platform for calibration.
+ * @param   weight The total known weight placed on the scale platform for calibration.
  *
- * @note   This function operates on two key assumptions:
+ * @note    This function operates on two key assumptions:
  * 1. The scale has already been tared (zeroed). This function does not perform a tare.
  * 2. The `weight` is distributed perfectly evenly across all four sensors. For best
  * results, the calibration weight should be placed in the exact center of the scale.
@@ -188,7 +214,7 @@ void calibrate_all(float weight) {
     SCALE_B.set_scale(); 
     SCALE_C.set_scale(); 
     SCALE_D.set_scale(); 
-     
+    
     // Assume the total weight is distributed equally among the four scales.
     float perScale = weight / 4.0f;
 
@@ -224,7 +250,7 @@ void calibrate_all(float weight) {
 
 
 /**
- * @brief  Arduino setup: initialize serial, scales, load settings, then tare.
+ * @brief   Arduino setup: initialize serial, scales, load settings, then tare.
  */
 void setup() {
     Serial.begin(115200);
@@ -242,12 +268,19 @@ void setup() {
     SCALE_D.load();
 
     tare_all();
+
+    // Get an initial reading to seed the spike filter.
+    last_reading_A = SCALE_A.get_units();
+    last_reading_B = SCALE_B.get_units();
+    last_reading_C = SCALE_C.get_units();
+    last_reading_D = SCALE_D.get_units();
+
     Serial.println(F("System ready."));
     print_menu();
 }
 
 /**
- * @brief  Main loop: handle user commands and streaming modes.
+ * @brief   Main loop: handle user commands and streaming modes.
  */
 void loop() {
     // Non-blocking check for new command
@@ -255,18 +288,27 @@ void loop() {
         char cmd = Serial.read();
         switch (cmd) {
             case 'r': mode = STREAM_READINGS; break;
-            case 'c': mode = STREAM_COP;  break;
+            case 'c': mode = STREAM_COP;      break;
             case 'z': mode = IDLE; tare_all();  break;
             case 'k': mode = IDLE; quick_calibrate(); print_menu(); break;
-            case 'h': mode = IDLE; print_menu();  break;
-            case 's': mode = IDLE;  break; 
+            case 'h': mode = IDLE; print_menu();      break;
+            case 's': mode = IDLE;            break; 
         }
     }
 
     // Continuous streaming if in a streaming mode
-    if (mode == STREAM_READINGS) {
-        print_readings();
-    } else if (mode == STREAM_COP) {
-        print_cop();
+    if (mode == STREAM_READINGS || mode == STREAM_COP) {
+        // Get a filtered reading from each scale
+        float wa = get_filtered_reading(&SCALE_A, last_reading_A);
+        float wb = get_filtered_reading(&SCALE_B, last_reading_B);
+        float wc = get_filtered_reading(&SCALE_C, last_reading_C);
+        float wd = get_filtered_reading(&SCALE_D, last_reading_D);
+
+        // Call the appropriate function with the filtered values
+        if (mode == STREAM_READINGS) {
+            print_readings(wa, wb, wc, wd);
+        } else if (mode == STREAM_COP) {
+            print_cop(wa, wb, wc, wd);
+        }
     }
 }
