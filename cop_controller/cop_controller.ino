@@ -159,7 +159,9 @@ void tare_all() {
  * parses the input, and then calls the core calibration logic.
  */
 void quick_calibrate() {
-    // Clear buffer
+    delay(100); 
+
+    // Clear buffer (remove 'k' and any trailing newlines/carriage returns)
     while (Serial.available() > 0) {
         Serial.read();
     }
@@ -178,7 +180,7 @@ void quick_calibrate() {
     // Read the floating-point number from the serial buffer
     float weight = Serial.parseFloat();
     
-    // Clear any remaining characters from the buffer (like the newline)
+    // Clear any remaining characters from the buffer (like the newline after the number)
     while(Serial.available() > 0) {
         Serial.read();
     }
