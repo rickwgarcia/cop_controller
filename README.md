@@ -64,7 +64,7 @@ Place all the provided files (`cop_controller.ino`, `Scale.h`, `Scale.cpp`, `Coo
 
 ## How to Use
 
-All interaction with the controller is done via the **Arduino Serial Monitor** set to a baud rate of **9600**. After uploading the sketch, open the Serial Monitor to begin.
+All interaction with the controller is done via the **Arduino Serial Monitor** set to a baud rate of **115200**. After uploading the sketch, open the Serial Monitor to begin.
 
 ### Initial Setup (Calibration)
 
