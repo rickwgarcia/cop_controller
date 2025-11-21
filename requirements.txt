@@ -1,0 +1,23 @@
+# Project Requirements: HX711 CoP Controller
+
+## Hardware Target
+- Platform: Arduino AVR (Uno, Nano, Mega, or similar)
+- Voltage Logic: 5V
+
+## External Libraries (Install via Arduino Library Manager)
+1. Name: HX711
+   - Author: Bogdan Necula
+   - Version: 0.7.5 or newer
+   - URL: https://github.com/bogde/HX711
+   - Purpose: Communication with the load cell amplifiers.
+
+2. Name: EEPROM
+   - Author: Arduino
+   - Status: Built-in
+   - Purpose: Saving calibration data to non-volatile memory.
+
+## Local File Dependencies
+(These files must exist in the sketch folder for the code to compile)
+1. scale.h       - Custom wrapper class for the Scale logic.
+2. coordinate.h  - Custom class for Center of Pressure calculations.
+3. cop_controller.ino - Main application entry point.
