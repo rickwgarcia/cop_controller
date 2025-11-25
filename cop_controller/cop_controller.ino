@@ -46,7 +46,7 @@ Scale SCALE_D(EEPROM_ADDR_D);
 
 // Threshold for spike rejection. If a new reading changes by more than this amount
 // from the last one, it's considered an outlier. Tune this value for your setup.
-const float SPIKE_THRESHOLD = 2.0f; // In lbs
+const float SPIKE_THRESHOLD = 10.0f; // In lbs
 
 // Variables to store the last known good reading for each scale
 static float last_reading_A = 0.0f;
