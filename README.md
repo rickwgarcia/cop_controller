@@ -89,11 +89,6 @@ The following commands are available:
 | `k`     | **Quick Calibrate**: Initiates the calibration routine described above. |
 | `h`     | **Help**: Displays the menu of available commands. |
 
------
-
-Of course. Here is the updated "Center of Pressure (CoP) Calculation" section for your README file, reflecting the change in the Y-axis calculation.
-
------
 
 ## Center of Pressure (CoP) Calculation
 
