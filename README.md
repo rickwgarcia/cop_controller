@@ -18,7 +18,7 @@ This project implements a versatile four-point weight sensing platform using an 
 ## Hardware Requirements
 
   * 1 x Arduino Nano (or compatible board)
-  * 4 x Strain Gauge Load Cells (e.g., 50kg half-bridge or similar)
+  * 8 x Strain Gauge Load Cells (e.g., 50kg half-bridge or similar)
   * 4 x HX711 Load Cell Amplifier Modules
   * 1 x 5V DC Power Supply
 
