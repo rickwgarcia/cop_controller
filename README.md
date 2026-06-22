@@ -1,5 +1,5 @@
 
-# Arduino 4-Scale Center of Pressure (CoP) Controller
+# 4-Scale Center of Pressure (CoP) Controller
 
 This project implements a versatile four-point weight sensing platform using an Arduino Nano, four load cells, and their corresponding HX711 amplifier modules. The system can stream individual weight readings or calculate the Center of Pressure (CoP) in real-time. It features a simple serial command interface for operation, including functions for taring and a quick calibration routine that saves settings to the Arduino's EEPROM for persistence between power cycles.
 
