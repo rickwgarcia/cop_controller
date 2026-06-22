@@ -43,6 +43,13 @@ The hardware should be connected according to the diagram below. All four HX711 
 | `5V`        | `VCC` on all HX711 modules  |
 | `GND`       | `GND` on all HX711 modules  |
 
+
+## Chip Mods
+Note that by default the Sparkfun HX711 chip SJ2 is closed, data rate set to 10SPS, open the jumper to set to 80SPS, increasing the noise per readings. This is not optional is neccsarry for proper function.
+
+
+<div align="center"><img width="600" height="452" alt="hx711_schem" src="https://github.com/user-attachments/assets/131c616e-c3a8-4394-897f-3cc67e0d3586" /></div>
+
 -----
 
 ## Software Setup
